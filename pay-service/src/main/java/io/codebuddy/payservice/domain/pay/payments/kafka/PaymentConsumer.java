@@ -3,6 +3,7 @@ package io.codebuddy.payservice.domain.pay.payments.kafka;
 import io.codebuddy.closetbuddy.event.PaymentRequestEvent;
 import io.codebuddy.closetbuddy.event.PaymentResultEvent;
 import io.codebuddy.closetbuddy.event.PaymentRollbackRequest;
+import io.codebuddy.payservice.domain.pay.exception.PayException;
 import io.codebuddy.payservice.domain.pay.payments.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,9 +39,17 @@ public class PaymentConsumer {
             kafkaTemplate.send("order.payment.result",resultEvent);
             log.info("결제 성공 이벤트 발행 : orderId = {}", event.orderId());
 
+        } catch (PayException e){
+            log.warn("결제 실패 - 비즈니스 오류 : {}", e.getMessage());
+
+            PaymentResultEvent resultEvent = new PaymentResultEvent(event.orderId(), false, e.getMessage());
+
+            kafkaTemplate.send("order.payment.result", resultEvent);
+
+
         } catch (Exception e) {
             // 결제 실패 이벤트 발행
-            log.info("결제 실패 : {}", e.getMessage());
+            log.error("결제 실패 : {}", e.getMessage());
             PaymentResultEvent resultEvent = new PaymentResultEvent(event.orderId(), false, e.getMessage());
 
             kafkaTemplate.send("order.payment.result", resultEvent);
@@ -64,8 +73,8 @@ public class PaymentConsumer {
             log.info("결제 롤백 완료");
         } catch (Exception e) {
             // TO-DO : 롤백 실패 시 어떻게 처리할 지
-            log.error("결제 롤백 실패");
-            throw new RuntimeException(e);
+            log.error("결제 롤백 실패 : orderId = {}, message = {}", event.orderId(),e.getMessage());
+
         }
 
     }

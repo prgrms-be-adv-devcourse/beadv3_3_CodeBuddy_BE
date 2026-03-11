@@ -11,6 +11,7 @@ import io.codebuddy.payservice.domain.pay.accounts.model.vo.TossCancelRequest;
 import io.codebuddy.payservice.domain.pay.accounts.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Account", description = "예치금 조회, 충전 및 결제 내역 관리 API")
+@Tag(name = "Account", description = "예치금 조회, 충전 및 예치금 변동 내역 관리 API")
 @RestController
 @RequestMapping("/api/v1/account")
 @RequiredArgsConstructor
@@ -57,7 +58,12 @@ public class AccountController {
                     content = @Content(schema = @Schema(implementation = AccountHistoryResponse.class))),
             @ApiResponse(responseCode = "400", description = "결제 정보 불일치 또는 유효하지 않은 요청", content = @Content),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content),
-            @ApiResponse(responseCode = "500", description = "Toss 서버 오류")
+            @ApiResponse(responseCode = "500", description = "Toss 서버 오류", content = @Content)
+    })
+    @Parameters({
+            @Parameter(name = "paymentKey", description = "PG사 결제 키"),
+            @Parameter(name = "orderId", description = "PG사 거래 번호"),
+            @Parameter(name = "amount", description = "충전 금액")
     })
     @PostMapping("/charge")
     public ResponseEntity<AccountHistoryResponse> chargeAccount(
@@ -135,6 +141,7 @@ public class AccountController {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 내역", content = @Content),
             @ApiResponse(responseCode = "500", description = "Toss 서버 오류", content = @Content)
     })
+    @Parameter(name = "cancelReason", description = "결제 취소 사유")
     @PostMapping("/history/{accountHistoryId}/cancel")
     public ResponseEntity<AccountHistoryResponse> cancelHistory(
             @Parameter(hidden = true) @CurrentUser CurrentUserInfo currentUser,

@@ -49,7 +49,7 @@ public class SwaggerConfig {
 
                 .info(new Info()
                         .title("Pay Service API")
-                        .description("Pay Service API 명세서")
+                        .description("ClosetBuddy의 Pay Service API 명세서입니다.")
                         .version("v0"));
     }
 

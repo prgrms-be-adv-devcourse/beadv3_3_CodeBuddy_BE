@@ -111,6 +111,7 @@ public class AccountServiceImpl implements AccountService{
                 .pgPaymentKey(paymentSuccessDto.getPaymentKey())
                 .pgOrderId(command.getOrderId())
                 .chargeAmount(command.getAmount())
+                .approvedAt(approvedAt)
                 .status(ChargeStatus.DONE)
                 .build();
         depositChargeRepository.save(charge);
@@ -237,6 +238,7 @@ public class AccountServiceImpl implements AccountService{
                 .type(TransactionType.CANCEL)
                 .amount(-history.getAmount()) // 음수 처리
                 .balanceSnapshot(account.getBalance())
+                .createdAt(LocalDateTime.now())
                 .refId(depositCharge.getChargeId())
                 .build();
         accountHistoryRepository.save(refundHistory);
@@ -244,7 +246,7 @@ public class AccountServiceImpl implements AccountService{
         // 토스 환불 요청
         paymentClient.cancel(depositCharge.getPgPaymentKey(), reason);
 
-        return AccountMapper.toHistoryResponse(history);
+        return AccountMapper.toHistoryResponse(refundHistory);
     }
 
     @Override
